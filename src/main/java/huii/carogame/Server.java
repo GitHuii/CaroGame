@@ -7,24 +7,24 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.*;
 
-public class ClientB extends JFrame {
+public class Server extends JFrame{
     private int SIZE = 15;
     private JButton[][] buttons = new JButton[SIZE][SIZE];
     private Board board = new Board();
-    private boolean myTurn = false;
+    private boolean myTurn = true;
     
-    private int port_B = 5678;
-    private int port_A = 1234;
-    private DatagramSocket socket = new DatagramSocket(port_B);
-    private InetAddress address_A = InetAddress.getByName("127.0.0.1");
+    private int port_client = 5678;
+    private int port_server = 1234;
+    private DatagramSocket socket = new DatagramSocket(port_server);
+    private InetAddress IP = InetAddress.getByName("127.0.0.1"); //ip doi thu
     
-    public ClientB() throws Exception
+    public Server() throws Exception
     {
-        setTitle("Client B");
+        setTitle("Server");
         setLayout(new GridLayout(SIZE, SIZE));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(800, 800);
-
+        
         for (int i = 0; i < SIZE; i++)
         {
             for (int j = 0; j < SIZE; j++)
@@ -37,42 +37,40 @@ public class ClientB extends JFrame {
                 add(buttons[i][j]);
             }
         }
-
         new Thread(this::receiveData).start();
     }
 
+    
     private void handleButtonClick(int x, int y)
-    { 
+    {
         if(!myTurn)
         {
             JOptionPane.showMessageDialog(this, "chua den luot !");
             return;
         }
-
-        if(board.check(x, y,"O"))
+        if (board.check(x, y,"X"))
         {
-            buttons[x][y].setText("O");
+            buttons[x][y].setText("X");
             buttons[x][y].setEnabled(false);
             myTurn = false;
-
+            
             sendData(x, y);
 
-            if (board.checkWin(x, y,"O"))
+            if (board.checkWin(x, y,"X"))
             {
-                JOptionPane.showMessageDialog(this, "B win !");
+                JOptionPane.showMessageDialog(this, "Player Server Win !");
                 System.exit(0);
             }
         }
     }
 
-
     private void sendData(int x, int y)
     {
         try
         {
-            String str = x + "-" + y;
+            String str = x + "-" + y ;
             byte[] data = str.getBytes();
-            DatagramPacket packet = new DatagramPacket(data, data.length, address_A, port_A);
+            DatagramPacket packet = new DatagramPacket(data, data.length, IP, port_client);
             socket.send(packet);
         }
         catch (Exception e)
@@ -91,17 +89,16 @@ public class ClientB extends JFrame {
                 socket.receive(packet);
 
                 String message = new String(packet.getData(), 0, packet.getLength());
-                String[] parts = message.split("-");
-                int x = Integer.parseInt(parts[0]);
-                int y = Integer.parseInt(parts[1]);
-
+                String[] str = message.split("-");
+                int x = Integer.parseInt(str[0]);
+                int y = Integer.parseInt(str[1]);
                 SwingUtilities.invokeLater(() -> {
-                    buttons[x][y].setText("X");
+                    buttons[x][y].setText("O");
                     buttons[x][y].setEnabled(false);
-                    board.check(x, y,"X");
+                    board.check(x, y,"O");
 
-                    if (board.checkWin(x, y,"X")) {
-                        JOptionPane.showMessageDialog(this, "A win !");
+                    if (board.checkWin(x, y,"O")) {
+                        JOptionPane.showMessageDialog(this, "Player Client win!");
                         System.exit(0);
                     }
 
@@ -114,15 +111,13 @@ public class ClientB extends JFrame {
         }
     }
 
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         SwingUtilities.invokeLater(() -> {
             try {
-                new ClientB().setVisible(true);
+                new Server().setVisible(true);
             } catch (Exception e) {
             }
         });
     }
 }
-
 
