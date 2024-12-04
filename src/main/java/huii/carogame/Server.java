@@ -8,15 +8,16 @@ import java.awt.*;
 import java.net.*;
 
 public class Server extends JFrame{
+    
+    private int port_client = 1111;
+    private int port_server = 9999;
+    private InetAddress IP = InetAddress.getByName("127.0.0.1");
+    private DatagramSocket socket = new DatagramSocket(port_server);
+    
     private int SIZE = 15;
     private JButton[][] buttons = new JButton[SIZE][SIZE];
     private Board board = new Board();
     private boolean myTurn = true;
-    
-    private int port_client = 5678;
-    private int port_server = 1234;
-    private DatagramSocket socket = new DatagramSocket(port_server);
-    private InetAddress IP = InetAddress.getByName("127.0.0.1"); //ip doi thu
     
     public Server() throws Exception
     {
